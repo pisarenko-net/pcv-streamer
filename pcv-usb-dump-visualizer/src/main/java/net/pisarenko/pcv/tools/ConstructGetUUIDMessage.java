@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.util.Random;
 
 /**
- * Code snippets for PCV message construction.
+ * Code snippets for alleged PCV message construction.
  */
 public class ConstructGetUUIDMessage {
     public static final int MAX_PACKET_SIZE = 40;
