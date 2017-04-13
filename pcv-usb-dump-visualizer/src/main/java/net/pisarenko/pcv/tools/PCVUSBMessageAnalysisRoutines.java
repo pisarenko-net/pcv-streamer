@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import net.pisarenko.pcv.common.Command;
 import net.pisarenko.pcv.common.Message;
 import net.pisarenko.pcv.common.MessageUtil;
+import net.pisarenko.pcv.values.RPM;
 import net.pisarenko.pcv.values.Throttle;
 
 import java.util.List;
@@ -51,6 +52,9 @@ public class PCVUSBMessageAnalysisRoutines {
             case "3":
                 analyzeAllegedThrottleValues(messages);
                 break;
+            case "4":
+                analyzeAllegedRPMValues(messages);
+                break;
             default:
                 System.out.println("Unknown routine");
         }
@@ -69,6 +73,14 @@ public class PCVUSBMessageAnalysisRoutines {
                 .filter(m -> m.getCommand() == Command.GET_CHANNEL_STATUS)
                 .filter(m -> m.getLength() == 29)
                 .forEach(m -> System.out.println("[" + Joiner.on(" ").join(m.getPayloadArrayHex()) + "] " + Throttle.fromMessage(m)));
+    }
+
+    private static void analyzeAllegedRPMValues(final List<Message> messages) {
+        messages.stream()
+                .filter(m -> m.getDirection() == Message.MessageDirection.UP)
+                .filter(m -> m.getCommand() == Command.GET_CHANNEL_STATUS)
+                .filter(m -> m.getLength() == 29)
+                .forEach(m -> System.out.println("[" + Joiner.on(" ").join(m.getPayloadArrayHex()) + "] " + RPM.fromMessage(m)));
     }
 
     /**
