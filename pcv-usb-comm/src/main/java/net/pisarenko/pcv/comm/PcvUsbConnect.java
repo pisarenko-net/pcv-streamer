@@ -45,6 +45,10 @@ public class PcvUsbConnect {
             0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     };
 
+    /**
+     * USB library works like the following. First, create an async pipe listener. Then, create an empty buffer (64 byte)
+     * and make an asyncSubmit with it. Once the device provides a response the
+     */
     public static void main(String[] args) throws Exception {
         UsbDevice pcv = findPcv(UsbHostManager.getUsbServices().getRootUsbHub());
         if (pcv == null) {
@@ -103,7 +107,7 @@ public class PcvUsbConnect {
         new Thread(() -> {
             while (true) {
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(400);
                     toDevice.getUsbPipe().asyncSubmit(intsToBytes(REQUEST_STATS_PACKET));
                 } catch (Exception e) {
                     e.printStackTrace();

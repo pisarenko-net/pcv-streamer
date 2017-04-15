@@ -60,7 +60,7 @@ public class Packet {
         long out = 0;
         int c = 0;
         for (int i = start; i < start + length; i++) {
-            out |= payload[i] << (c * 8);
+            out |= (payload[i] & 0xFF) << (c * 8);
             c++;
         }
         return out;
