@@ -16,7 +16,7 @@ import java.util.Set;
 import static java.lang.String.format;
 
 /**
- * This program follows a mistaken assumption - TransferBuffer is not the actual data. See {@link PCVUSBMessageAnalysisRoutines}
+ * This program follows a mistaken assumption - TransferBuffer is not the actual data. See {@link PCVUSBPacketAnalysisRoutines}
  * instead.
  */
 public class UsbDumpVisualizer {

@@ -28,11 +28,18 @@
       <version>${guava-version}</version>
     </dependency>
 
-  <dependency>
-    <groupId>org.usb4java</groupId>
-    <artifactId>usb4java-javax</artifactId>
-    <version>${usb4java-version}</version>
-  </dependency>
+    <dependency>
+      <groupId>org.usb4java</groupId>
+      <artifactId>usb4java-javax</artifactId>
+      <version>${usb4java-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.pisarenko.pcv.tools</groupId>
+      <artifactId>pcv-usb-dump-visualizer</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

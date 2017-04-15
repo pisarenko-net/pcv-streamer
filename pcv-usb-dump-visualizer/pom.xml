@@ -40,7 +40,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>net.pisarenko.pcv.tools.PCVUSBMessageAnalysisRoutines</mainClass>
+              <mainClass>net.pisarenko.pcv.tools.PCVUSBPacketAnalysisRoutines</mainClass>
             </manifest>
           </archive>
         </configuration>

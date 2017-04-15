@@ -1,6 +1,6 @@
 package net.pisarenko.pcv.values;
 
-import net.pisarenko.pcv.common.Message;
+import net.pisarenko.pcv.common.Packet;
 
 /**
  * RPM value is stored in 2 bytes starting from byte 1.
@@ -13,7 +13,7 @@ import net.pisarenko.pcv.common.Message;
 public class RPM {
     private RPM() {}
 
-    public static int fromMessage(final Message message) {
-        return (int) message.getPayloadFragment(1, 2);
+    public static int fromPacket(final Packet packet) {
+        return (int) packet.getPayloadFragment(1, 2);
     }
 }

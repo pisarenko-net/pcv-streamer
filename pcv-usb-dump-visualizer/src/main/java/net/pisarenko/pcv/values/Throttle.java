@@ -1,6 +1,6 @@
 package net.pisarenko.pcv.values;
 
-import net.pisarenko.pcv.common.Message;
+import net.pisarenko.pcv.common.Packet;
 
 /**
  * Throttle value is stored in 2 bytes starting from byte 9. Value ranges from 1 to 1000.
@@ -13,7 +13,7 @@ import net.pisarenko.pcv.common.Message;
 public class Throttle {
     private Throttle() {}
 
-    public static int fromMessage(final Message message) {
-        return (int) message.getPayloadFragment(9, 2);
+    public static int fromPacket(final Packet packet) {
+        return (int) packet.getPayloadFragment(9, 2);
     }
 }
