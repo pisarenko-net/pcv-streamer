@@ -1,29 +1,26 @@
 package net.pisarenko.pcv.comm;
 
-import net.pisarenko.pcv.common.Command;
 import net.pisarenko.pcv.common.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.usb.UsbDisconnectedException;
 import javax.usb.UsbException;
-import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 
 @SuppressWarnings("squid:S2189")
 public class PacketReceiver implements Runnable {
-    private static final byte[] REQUEST_PACKET_PAYLOAD = new byte[]{
-            (byte)0x1b, (byte)0x1c, (byte)0x2a, (byte)0x2e, (byte)0xc5,
-            (byte)0x8f, (byte)0xc3, (byte)0x1d, (byte)0x1f, (byte)0x8e,
-            (byte)0xe0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
-    };
+    private static final Logger LOGGER = LoggerFactory.getLogger(PacketReceiver.class);
 
     private static final int RECEIVE_RETRY_COUNT = 20;
 
     /** How often should we request new values. */
     private int frequency;
     /** Where the received packets go. */
-    private List<Packet> queue;
+    private Queue<Packet> queue;
 
-    public PacketReceiver(final int frequency, final List<Packet> queue) {
+    public PacketReceiver(final int frequency, final Queue<Packet> queue) {
         this.frequency = frequency;
         this.queue = queue;
     }
@@ -41,21 +38,21 @@ public class PacketReceiver implements Runnable {
                 connectionOpt = Optional.empty();
                 while (!connectionOpt.isPresent()) {
                     try {
+                        LOGGER.debug("Trying to establish USB connection.");
                         connectionOpt = USBConnection.establish();
                     } catch (UsbException e) {
-                        e.printStackTrace();
+                        LOGGER.debug("Failed to open USB connection", e);
                     }
 
-                    System.out.println("FAILED TO ESTABLISH USB CONNECTION, RETRYING");
                     Thread.sleep(2000);
                 }
-                System.out.println("USB CONNECTION ESTABLISHED");
+                LOGGER.info("USB connection established.");
 
                 // send and receive messages
                 connection = connectionOpt.get();
                 while (true) {
                     try {
-                        sendPacket = Packet.createSendPacket(Command.GET_CHANNEL_STATUS, REQUEST_PACKET_PAYLOAD);
+                        sendPacket = Packet.createStatsRequestPacket();
                         connection.sendPacket(sendPacket);
                         int retryCount = 0;
 
@@ -66,10 +63,10 @@ public class PacketReceiver implements Runnable {
 
                         queue.add(receivedPacket);
                     } catch (UsbDisconnectedException e) {
-                        System.out.println("LOST USB CONNECTION");
+                        LOGGER.info("USB connection lost");
                         break;
                     } catch (UsbException e) {
-                        System.out.println("EXCEPTION OCCURRED: " + e);
+                        LOGGER.debug("Exception occurred when sending/receiving", e);
                     }
 
                     Thread.sleep(frequency);

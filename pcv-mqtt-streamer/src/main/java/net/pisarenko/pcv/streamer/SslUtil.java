@@ -1,14 +1,5 @@
 package net.pisarenko.pcv.streamer;
 
-/**
- * Utility class to read encrypted PEM files and generate a
- * SSL Socket Factory based on the provided certificates.
- * The original code is by Sharon Asher (link below). I have modified
- * it to use a newer version of the BouncyCastle Library (v1.52)
- *
- * Reference - https://gist.github.com/sharonbn/4104301"
- */
-
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -30,12 +21,16 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+/**
+ * Utility class to read encrypted PEM files and generate a SSL Socket Factory based on the provided certificates. The
+ * original code is by Sharon Asher (link below). I have modified it to use a newer version of the BouncyCastle Library.
+ *
+ * Reference - https://gist.github.com/sharonbn/4104301"
+ */
 public class SslUtil {
-
-    public static SSLSocketFactory getSocketFactory(final String caCrtFile, final String crtFile, final String keyFile,
-                                                    final String password) {
+    public static SSLSocketFactory getSocketFactory(
+            final String caCrtFile, final String crtFile, final String keyFile, final String password) {
         try {
-
             /**
              * Add BouncyCastle as a Security Provider
              */

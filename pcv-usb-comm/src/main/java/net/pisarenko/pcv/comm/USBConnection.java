@@ -1,6 +1,8 @@
 package net.pisarenko.pcv.comm;
 
 import net.pisarenko.pcv.common.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.usb.*;
 import java.time.Clock;
@@ -9,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class USBConnection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(USBConnection.class);
+
     private static final int VENDOR_ID = 0x10b6;
     private static final int PRODUCT_ID = 0x0502;
 
@@ -23,6 +27,7 @@ public class USBConnection {
     public static Optional<USBConnection> establish() throws UsbException {
         UsbDevice device = findUSBDevice(UsbHostManager.getUsbServices().getRootUsbHub());
         if (device == null) {
+            LOGGER.debug("PCV USB device not found");
             return Optional.empty();
         }
 

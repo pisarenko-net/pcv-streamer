@@ -9,7 +9,24 @@ import java.util.Random;
 
 import static java.lang.String.format;
 
+/**
+ * A 64 byte PCV packet consists of:
+ *  - 4 bytes ID (a random number)
+ *  - 2 bytes command (see {@link Command})
+ *  - 2 bytes payload length
+ *  - remaining bytes payload and junk (to fill 64 byte packet)
+ *
+ *  Note: PCV packets are generally little endian! For example, assuming 0x010F stores a decimal value we need to reverse
+ *  the bytes before converting to decimal. So 0x010F becomes 0x0F01 3841.
+ */
 public class Packet {
+    /** Payload that requests engine statistics, e.g. RPM, throttle, speed, gear... */
+    private static final byte[] REQUEST_PACKET_PAYLOAD = new byte[]{
+            (byte) 0x1b, (byte) 0x1c, (byte) 0x2a, (byte) 0x2e, (byte) 0xc5,
+            (byte) 0x8f, (byte) 0xc3, (byte) 0x1d, (byte) 0x1f, (byte) 0x8e,
+            (byte) 0xe0, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+    };
+
     /** Complete 64-byte packet. */
     private byte[] data;
     /** See {@link PacketDirection} */
@@ -73,10 +90,21 @@ public class Packet {
         return packet;
     }
 
+    public static Packet createStatsRequestPacket() {
+        return createSendPacket(Command.GET_CHANNEL_STATUS, REQUEST_PACKET_PAYLOAD);
+    }
+
+    /**
+     * When PCV responds to a sent packet it will reuse the ID. So an ID is a way to correlate responses to previously
+     * sent requests.
+     */
     public long getId() {
         return joinBytes(data, 0, 4);
     }
 
+    /**
+     * Returns a complete copy of the raw packet byte array. Note: little endian!
+     */
     public byte[] getRawPacket() {
         byte[] out = new byte[64];
         System.arraycopy(this.data, 0, out, 0, 64);
@@ -95,6 +123,9 @@ public class Packet {
         return (data[7] << 8) | data[6];
     }
 
+    /**
+     * Returns a complete copy of the raw payload byte array. Note: little endian!
+     */
     public byte[] getRawPayload() {
         final int length = getPayloadLength();
         byte[] payload = new byte[length];
@@ -102,10 +133,16 @@ public class Packet {
         return payload;
     }
 
+    /**
+     * Returns a long by joining together all payload bytes. Note: may overflow!
+     */
     public long getPayloadAsLong() {
         return joinBytes(getRawPayload(), 0, getPayloadLength());
     }
 
+    /**
+     * Returns a long by joining together specified bytes in the payload. Note: may overflow!
+     */
     public long getPayloadFragment(final int start, final int length) {
         return joinBytes(getRawPayload(), start, length);
     }

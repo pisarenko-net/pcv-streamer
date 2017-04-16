@@ -1,51 +1,46 @@
 package net.pisarenko.pcv.streamer;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import com.google.common.collect.EvictingQueue;
+import com.google.common.collect.Queues;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.Queue;
 
 public class PcvStreamerApplication {
-
     /** Path to the Amazon root CA. */
     private static String ROOT_CA_PATH = "rootCA.crt";
     /** Path to the certificate (generated during setup). */
     private static String CERT_PATH = "cert.pem";
     /** Path to the private key file (generated during setup). */
     private static String PRIVATE_KEY_PATH = "privkey.pem";
+    private static String SERVER_URL = "ssl://data.iot.eu-west-1.amazonaws.com:8883";
+    private static String CLIENT_ID = "KTMDuke390";
 
-    public static void main(String[] args) {
-        String topic        = "KTM Duke 390 RPM";
-        String serverUrl    = "ssl://data.iot.eu-west-1.amazonaws.com:8883";
-        String clientId     = "KTMDuke390";
+    public static void main(String[] args) throws Exception {
+        Queue<StreamerMessage> queue = Queues.synchronizedQueue(EvictingQueue.<StreamerMessage>create(1000));
 
-        String content      = "RPM read-out from the engine";
-        MemoryPersistence persistence = new MemoryPersistence();
+        new Thread(new AmazonMqttStreamer(SERVER_URL, CLIENT_ID, queue, ROOT_CA_PATH, CERT_PATH, PRIVATE_KEY_PATH)).start();
+        new Thread(new ValueGenerator(queue)).start();
+    }
 
-        try {
-            MqttClient sampleClient = new MqttClient(serverUrl, clientId, persistence);
-            MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setSocketFactory(SslUtil.getSocketFactory(
-                    ROOT_CA_PATH, CERT_PATH, PRIVATE_KEY_PATH, ""));
-            connOpts.setCleanSession(true);
-            System.out.println("Connecting to broker: "+serverUrl);
-            sampleClient.connect(connOpts);
-            System.out.println("Connected");
-            System.out.println("Publishing message: "+content);
-            MqttMessage message = new MqttMessage(content.getBytes());
-            sampleClient.publish(topic, message);
-            System.out.println("Message published");
-            sampleClient.disconnect();
-            System.out.println("Disconnected");
-            System.exit(0);
-        } catch(MqttException me) {
-            System.out.println("reason "+me.getReasonCode());
-            System.out.println("msg "+me.getMessage());
-            System.out.println("loc "+me.getLocalizedMessage());
-            System.out.println("cause "+me.getCause());
-            System.out.println("excep "+me);
-            me.printStackTrace();
+    @SuppressWarnings("squid:S2189")
+    private static class ValueGenerator implements Runnable {
+        private Queue<StreamerMessage> queue;
+
+        public ValueGenerator(final Queue<StreamerMessage> queue) {
+            this.queue = queue;
+        }
+
+        public void run() {
+            try {
+                while (true) {
+                    queue.add(new StreamerMessage("RPM", "0", LocalDateTime.now(Clock.systemUTC())));
+                    Thread.sleep(3000);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

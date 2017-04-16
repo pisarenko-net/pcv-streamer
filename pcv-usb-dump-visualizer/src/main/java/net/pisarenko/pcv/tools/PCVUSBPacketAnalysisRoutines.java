@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
  *
  * The goal is to understand where are the useful data bits stored. The program is based on previous discoveries and
  * many assumptions.
+ *
+ * This is of use only when trying to gain new insight from existing USB dumps.
  */
 public class PCVUSBPacketAnalysisRoutines {
     public static void main(String[] args) throws Exception {

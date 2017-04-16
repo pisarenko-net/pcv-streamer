@@ -1,7 +1,11 @@
 package net.pisarenko.pcv.common;
 
+/**
+ * Commands that are supported by the PCV.
+ */
 public enum Command  {
     INVALID(0),
+    /** This command is sent regularly from the device even when no commands are sent to it. */
     CAN_PASS(8450),
     /** The command relevant to reading out real-time engine values, such as RPMs, throttle, gear. */
     GET_CHANNEL_STATUS(5),
