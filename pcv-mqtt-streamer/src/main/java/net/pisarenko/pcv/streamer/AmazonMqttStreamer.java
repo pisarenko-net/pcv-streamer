@@ -21,6 +21,7 @@ public class AmazonMqttStreamer implements Runnable {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
+    public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final int CONNECTION_TIMEOUT_SECONDS = 0;
 
     private String serverUrl;
@@ -79,7 +80,7 @@ public class AmazonMqttStreamer implements Runnable {
                             MqttMessage message = new MqttMessage(messageJson.getBytes());
                             client.publish(streamerMessage.getTopic(), message);
                             queue.remove();
-                            LOGGER.debug("Sent " + streamerMessage.getTopic() + " " + streamerMessage.getValue());
+                            LOGGER.debug("Sent " + streamerMessage.getTopic() + " " + streamerMessage.getValue() + " " + DateTimeFormatter.ofPattern(TIMESTAMP_FORMAT).format(streamerMessage.getTimestamp()));
                         } else {
                             Thread.sleep(50);
                         }
@@ -101,7 +102,7 @@ public class AmazonMqttStreamer implements Runnable {
         final ObjectNode node = mapper.createObjectNode();
         node.put("type", streamerMessage.getTopic());
         node.put("value", streamerMessage.getValue());
-        node.put("timestamp", DateTimeFormatter.ISO_DATE_TIME.format(streamerMessage.getTimestamp()));
+        node.put("timestamp", DateTimeFormatter.ofPattern(TIMESTAMP_FORMAT).format(streamerMessage.getTimestamp()));
         return node.toString();
     }
 }

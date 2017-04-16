@@ -6,6 +6,7 @@ import com.google.common.collect.Queues;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Queue;
+import java.util.Random;
 
 public class PcvStreamerApplication {
     /** Path to the Amazon root CA. */
@@ -27,6 +28,7 @@ public class PcvStreamerApplication {
     @SuppressWarnings("squid:S2189")
     private static class ValueGenerator implements Runnable {
         private Queue<StreamerMessage> queue;
+        private Random random = new Random();
 
         public ValueGenerator(final Queue<StreamerMessage> queue) {
             this.queue = queue;
@@ -35,7 +37,7 @@ public class PcvStreamerApplication {
         public void run() {
             try {
                 while (true) {
-                    queue.add(new StreamerMessage("RPM", "0", LocalDateTime.now(Clock.systemUTC())));
+                    queue.add(new StreamerMessage("RPM", "" + random.nextInt(100), LocalDateTime.now(Clock.systemUTC())));
                     Thread.sleep(3000);
                 }
             } catch (InterruptedException e) {
