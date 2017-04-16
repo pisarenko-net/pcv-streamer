@@ -70,7 +70,7 @@ public class PacketUtil {
                 System.arraycopy(data, 0, messageData, dataLineCount * 16, 16);
                 dataLineCount++;
                 if (dataLineCount == 4) {
-                    final Packet packet = new Packet(messageData, direction, seq, parseTimestamp(timestamp));
+                    final Packet packet = Packet.createFromDumpData(messageData, direction, seq, parseTimestamp(timestamp));
                     packets.add(packet);
                     dataLineCount = 0;
                     messageData = new byte[64];

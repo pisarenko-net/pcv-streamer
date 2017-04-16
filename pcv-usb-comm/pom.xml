@@ -50,7 +50,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>net.pisarenko.pcv.comm.PcvUsbConnect</mainClass>
+              <mainClass>net.pisarenko.pcv.tools.PcvUsbConnect</mainClass>
             </manifest>
           </archive>
         </configuration>

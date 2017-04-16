@@ -55,9 +55,21 @@ public class PCVUSBPacketAnalysisRoutines {
             case "4":
                 analyzeAllegedRPMValues(packets);
                 break;
+            case "create":
+                createPacketAndPrint();
+                break;
             default:
                 System.out.println("Unknown routine");
         }
+    }
+
+    private static void createPacketAndPrint() {
+        final Packet packet = Packet.createSendPacket(Command.GET_CHANNEL_STATUS, new byte[]{
+                (byte)0x1b, (byte)0x1c, (byte)0x2a, (byte)0x2e, (byte)0xc5,
+                (byte)0x8f, (byte)0xc3, (byte)0x1d, (byte)0x1f, (byte)0x8e,
+                (byte)0xe0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+        });
+        System.out.println(packet);
     }
 
     private static void printChannelStatusMessages(final List<Packet> packets, Packet.PacketDirection direction) {

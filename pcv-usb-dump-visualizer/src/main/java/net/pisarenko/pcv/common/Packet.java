@@ -2,28 +2,79 @@ package net.pisarenko.pcv.common;
 
 import com.google.common.base.Joiner;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Random;
 
 import static java.lang.String.format;
 
 public class Packet {
-    private int id;
-    private final byte[] data;
-    private final PacketDirection direction;
-    private final int seq;
-    private final LocalDateTime timestamp;
+    /** Complete 64-byte packet. */
+    private byte[] data;
+    /** See {@link PacketDirection} */
+    private PacketDirection direction;
+    /** Sequence number. Useful when working with existing dumps. */
+    private int seq;
+    /** When was the packet received/captured. */
+    private LocalDateTime timestamp;
 
-    public Packet(final byte[] data, final PacketDirection direction, final int seq, final LocalDateTime timestamp) {
-        this.data = Arrays.copyOf(data, 64);
-        this.id = (int) getPayloadFragment(0, 4);
-        this.direction = direction;
-        this.seq = seq;
-        this.timestamp = timestamp;
+    private static final Random random = new Random();
+    private static final Clock clock = Clock.systemUTC();
+
+    private Packet() {}
+
+    public static Packet createFromDumpData(final byte[] data, final PacketDirection direction, final int seq, final LocalDateTime timestamp) {
+        Packet packet = new Packet();
+        packet.data = Arrays.copyOf(data, 64);
+        packet.direction = direction;
+        packet.seq = seq;
+        packet.timestamp = timestamp;
+        return packet;
     }
 
-    public int getId() {
-        return id;
+    public static Packet createFromReceivedData(final byte[] data, final LocalDateTime timestamp) {
+        Packet packet = new Packet();
+        packet.data = Arrays.copyOf(data, 64);
+        packet.direction = PacketDirection.UP;
+        packet.seq = 0;
+        packet.timestamp = timestamp;
+        return packet;
+    }
+
+    public static Packet createSendPacket(final Command command, final byte[] payload) {
+        Packet packet = new Packet();
+        packet.data = new byte[64];
+        packet.seq = 0;
+        packet.timestamp = LocalDateTime.now(clock);
+        packet.direction = PacketDirection.DOWN;
+
+        // set packet ID
+        final int randInt = random.nextInt();
+        packet.data[0] = (byte)(randInt & 0xFF);
+        packet.data[1] = (byte)((randInt >> 8) & 0xFF);
+        packet.data[2] = (byte)((randInt >> 16) & 0xFF);
+        packet.data[3] = (byte)((randInt >> 24) & 0xFF);
+
+        // set command type
+        final int cmdValue = command.toValue();
+        packet.data[4] = (byte)(cmdValue & 0xFF);
+        packet.data[5] = (byte)((cmdValue >> 8) & 0xFF);
+
+        // set payload length
+        packet.data[6] = (byte)(payload.length & 0xFF);
+        packet.data[7] = (byte)((payload.length >> 8) & 0xFF);
+
+        // set payload
+        for (int i = 0; i < payload.length; i++) {
+            packet.data[8 + i] = payload[i];
+        }
+
+        return packet;
+    }
+
+    public long getId() {
+        return joinBytes(data, 0, 4);
     }
 
     public byte[] getRawPacket() {
@@ -52,18 +103,11 @@ public class Packet {
     }
 
     public long getPayloadAsLong() {
-        return joinBytes(getRawPayload());
+        return joinBytes(getRawPayload(), 0, getPayloadLength());
     }
 
     public long getPayloadFragment(final int start, final int length) {
-        final byte[] payload = getRawPayload();
-        long out = 0;
-        int c = 0;
-        for (int i = start; i < start + length; i++) {
-            out |= (payload[i] & 0xFF) << (c * 8);
-            c++;
-        }
-        return out;
+        return joinBytes(getRawPayload(), start, length);
     }
 
     public LocalDateTime getTimestamp() {
@@ -83,11 +127,12 @@ public class Packet {
         UP
     }
 
-    private static long joinBytes(final byte[] array) {
+    private static long joinBytes(final byte[] array, final int start, final int length) {
         long out = 0;
+        int c = 0;
 
-        for (int i = 0; i < array.length; i++) {
-            out |= array[i] << (i * 8);
+        for (int i = start; i < start + length; i++, c++) {
+            out |= (array[i] & 0xFF) << (c * 8);
         }
 
         return out;
